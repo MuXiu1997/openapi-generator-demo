@@ -1,0 +1,42 @@
+name: Generate Axios Client
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate-axios-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - uses: actions/cache@v2
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm
+          restore-keys: |
+            ${{ runner.os }}-pnpm
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
+      - uses: actions/setup-java@v2
+        with:
+          distribution: zulu
+          java-version: '11'
+
+      - run: pnpm i -g @openapitools/openapi-generator-cli zx
+
+      - run: scripts/gen-axios.mjs
+
+      - working-directory: demo-axios
+        run: |
+          pnpm i
+          pnpm run build
+
+      - env:
+          NPMRC: ${{ secrets.NPMRC }}
+        working-directory: demo-axios
+        run: |
+          echo "$NPMRC" > .npmrc
+          pnpm publish --registry=https://baizhiedu-npm.pkg.coding.net/demo/npm/ --no-git-checks
