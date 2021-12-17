@@ -1,0 +1,45 @@
+name: Generate Srping Boot Server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate-srping-boot-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - uses: actions/cache@v2
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm
+          restore-keys: |
+            ${{ runner.os }}-pnpm
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
+      - uses: actions/setup-java@v2
+        with:
+          distribution: zulu
+          java-version: '11'
+      - uses: actions/setup-python@v2
+
+      - run: pnpm i -g @openapitools/openapi-generator-cli zx
+
+      - run: scripts/gen-spring.mjs
+
+      - run: scripts/set-maven-repository.py demo-spring/pom.xml '${{ secrets.MAVEN_URL }}'
+
+      - uses: whelk-io/maven-settings-xml-action@v20
+        with:
+          servers: '[{ "id": "maven", "username": "${{ secrets.MAVEN_USERNAME }}", "password": "${{ secrets.MAVEN_PASSWORD }}" }]'
+
+      - working-directory: demo-spring
+        run: mvn deploy
+
+
+
+
+
