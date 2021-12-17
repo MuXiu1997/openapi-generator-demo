@@ -1,0 +1,162 @@
+openapi: 3.0.2
+info:
+  title: demo
+  version: '0.1.0'
+  contact: {}
+  description: |
+    `This is a demo`
+  license:
+    name: MIT
+servers:
+  - url: 'https://localhost:8080/'
+tags:
+  - name: user
+    description: 用户相关接口
+paths:
+  /users:
+    get:
+      tags:
+        - user
+      summary: 列出所有用户
+      parameters:
+        - $ref: '#/components/parameters/paginationPage'
+        - $ref: '#/components/parameters/paginationPageSize'
+      operationId: listUsers
+      responses:
+        200:
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+        500:
+          $ref: '#/components/responses/errorResponse'
+    post:
+      tags:
+        - user
+      summary: 创建用户
+      parameters: []
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user'
+      responses:
+        201:
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        500:
+          $ref: '#/components/responses/errorResponse'
+  '/users/{userId}':
+    get:
+      tags:
+        - user
+      summary: 获取用户
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      operationId: getUser
+      responses:
+        200:
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        500:
+          $ref: '#/components/responses/errorResponse'
+    put:
+      tags:
+        - user
+      summary: 更新用户
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user'
+      responses:
+        200:
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        500:
+          $ref: '#/components/responses/errorResponse'
+components:
+  parameters:
+    # region 分页
+    paginationPage:
+      description: 分页-页号
+      in: query
+      name: page
+      schema:
+        type: integer
+        example: 1
+        minimum: 1
+    paginationPageSize:
+      description: 分页-每页项数
+      in: query
+      name: page_size
+      schema:
+        type: integer
+        example: 10
+        minimum: 1
+        maximum: 100
+    # endregion 分页
+
+    # region 路径参数
+    userId:
+      description: 用户ID
+      in: path
+      required: true
+      name: userId
+      schema:
+        type: integer
+        # endregion 路径参数
+  responses:
+    errorResponse:
+      description: 统一错误响应
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+  links: {}
+  callbacks: {}
+  schemas:
+    user:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        password:
+          type: string
+    error:
+      type: object
+      properties:
+        err_code:
+          type: integer
+        err_msg:
+          type: string
+      example:
+        err_code: 40100
+        err_msg: 登录状态已过期
+  securitySchemes:
+    token:
+      type: apiKey
+      in: header
+      name: X-TOKEN
+security:
+  - token: []
